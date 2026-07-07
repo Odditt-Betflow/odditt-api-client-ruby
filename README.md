@@ -58,28 +58,33 @@ your credential for a short-lived Bearer JWT (via `POST /v1/auth/login` or
 endpoints additionally accept the API key directly via the `X-API-Key` header, so
 no login round-trip is needed for them.
 
+Authenticate with an **API key** (sends X-API-Key on data endpoints; auto-logs-in
+for account endpoints and refreshes the Bearer token as needed):
+
 ```ruby
 require 'odditt_api_client'
 
-# Option A — API key (sends X-API-Key on data endpoints; auto-logs-in for
-# account endpoints and refreshes the Bearer token as needed):
 client = OddittApiClient::AuthSession.from_api_key('YOUR_API_KEY').api_client
 
-# Option B — OAuth client credentials (uses the auto-refreshed Bearer everywhere):
-# client = OddittApiClient::AuthSession.from_client_credentials(
-#   client_id: 'YOUR_CLIENT_ID', client_secret: 'YOUR_CLIENT_SECRET'
-# ).api_client
-
-# Pass the configured client to any *Api class:
 api_instance = OddittApiClient::AccountApi.new(client)
+result = api_instance.v1_account_api_keys_get
+p result
+```
 
-begin
-  # List own API keys (Bearer-only endpoint — the session logs in automatically)
-  result = api_instance.v1_account_api_keys_get
-  p result
-rescue OddittApiClient::ApiError => e
-  puts "Exception when calling AccountApi->v1_account_api_keys_get: #{e}"
-end
+Or authenticate with **OAuth client credentials** (uses the auto-refreshed Bearer
+everywhere):
+
+```ruby
+require 'odditt_api_client'
+
+client = OddittApiClient::AuthSession.from_client_credentials(
+  client_id: 'YOUR_CLIENT_ID',
+  client_secret: 'YOUR_CLIENT_SECRET'
+).api_client
+
+api_instance = OddittApiClient::AccountApi.new(client)
+result = api_instance.v1_account_api_keys_get
+p result
 ```
 
 <details>
