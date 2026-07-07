@@ -51,31 +51,50 @@ ruby -Ilib script.rb
 
 ## Getting Started
 
-Please follow the [installation](#installation) procedure and then run the following code:
+You authenticate with **either** an API key **or** OAuth client credentials —
+you do not supply a Bearer token yourself. `OddittApiClient::AuthSession` exchanges
+your credential for a short-lived Bearer JWT (via `POST /v1/auth/login` or
+`POST /v1/oauth/login`) and transparently refreshes it before it expires. Data
+endpoints additionally accept the API key directly via the `X-API-Key` header, so
+no login round-trip is needed for them.
 
 ```ruby
-# Load the gem
 require 'odditt_api_client'
 
-# Setup authorization
-OddittApiClient.configure do |config|
-  # Configure Bearer authorization (JWT): BearerAuth
-  config.access_token = 'YOUR_BEARER_TOKEN'
-  # Configure a proc to get access tokens in lieu of the static access_token configuration
-  config.access_token_getter = -> { 'YOUR TOKEN GETTER PROC' } 
-end
+# Option A — API key (sends X-API-Key on data endpoints; auto-logs-in for
+# account endpoints and refreshes the Bearer token as needed):
+client = OddittApiClient::AuthSession.from_api_key('YOUR_API_KEY').api_client
 
-api_instance = OddittApiClient::AccountApi.new
+# Option B — OAuth client credentials (uses the auto-refreshed Bearer everywhere):
+# client = OddittApiClient::AuthSession.from_client_credentials(
+#   client_id: 'YOUR_CLIENT_ID', client_secret: 'YOUR_CLIENT_SECRET'
+# ).api_client
+
+# Pass the configured client to any *Api class:
+api_instance = OddittApiClient::AccountApi.new(client)
 
 begin
-  #List own API keys
+  # List own API keys (Bearer-only endpoint — the session logs in automatically)
   result = api_instance.v1_account_api_keys_get
   p result
 rescue OddittApiClient::ApiError => e
   puts "Exception when calling AccountApi->v1_account_api_keys_get: #{e}"
 end
-
 ```
+
+<details>
+<summary>Low-level: configuring auth manually</summary>
+
+If you already hold a Bearer token (e.g. obtained out of band), you can still set
+it directly. Prefer `AuthSession` above, which handles acquisition and refresh.
+
+```ruby
+OddittApiClient.configure do |config|
+  config.api_key['ApiKeyAuth'] = 'YOUR_API_KEY'   # X-API-Key header
+  config.access_token = 'YOUR_BEARER_TOKEN'       # or config.access_token_getter = -> { ... }
+end
+```
+</details>
 
 ## Documentation for API Endpoints
 

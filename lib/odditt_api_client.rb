@@ -76,6 +76,10 @@ require 'odditt_api_client/api/reporting_api'
 require 'odditt_api_client/api/telemetry_api'
 require 'odditt_api_client/api/trends_api'
 
+# Hand-written convenience auth layer (not generated). Kept in
+# .openapi-generator-ignore so regeneration preserves it.
+require 'odditt_api_client/auth_session'
+
 module OddittApiClient
   class << self
     # Customize default settings for the SDK using block.
